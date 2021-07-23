@@ -22,7 +22,8 @@ class WeatherForescastViewController: UIViewController, UITableViewDelegate, UIT
         let nib = UINib(nibName: "WeatherForescastViewCell", bundle: nil)
         tableView.register(nib, forCellReuseIdentifier: "WeatherForescastViewCell")
         self.title = "WeatherForescast Example"
-        tableView.rowHeight = 400
+        tableView.rowHeight = 200
+        tableView.reloadData()
       
 
     }
@@ -37,9 +38,19 @@ class WeatherForescastViewController: UIViewController, UITableViewDelegate, UIT
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: "WeatherForescastViewCell", for: indexPath) as! WeatherForescastViewCell
     
-        
-        cell.cloudcoverLabel.text = results?.dataseries[indexPath.row].wind10m.direction
-        cell.cloudcoverLabel.backgroundColor = .red
+        if let timePoint = results?.dataseries[indexPath.row].timepoint{
+        cell.timepointLabel.text = "\(timePoint)"
+        }
+        if let cloud = results?.dataseries[indexPath.row].cloudcover {
+            cell.cloudcoverLabel.text = "\(cloud)"
+           
+        }
+        if let seeing = results?.dataseries[indexPath.row].seeing{
+            cell.seeingLabel.text = "\(seeing)"
+        }
+        if let transparency = results?.dataseries[indexPath.row].transparency{
+            cell.transparencyLabel.text = "\(transparency)"
+        }
         return cell
     }
     
@@ -51,7 +62,7 @@ class WeatherForescastViewController: UIViewController, UITableViewDelegate, UIT
     
     // Data Json
     private func getData(url:String){
-        let task = URLSession.shared.dataTask(with: URL(string: url)!, completionHandler: { data, response, error in
+        let task = URLSession.shared.dataTask(with: URL(string: url)!, completionHandler: { data, response, error in 
             guard let data = data, error == nil else {
                 print("some error here")
                 return
@@ -61,6 +72,10 @@ class WeatherForescastViewController: UIViewController, UITableViewDelegate, UIT
                 self.results = try! JSONDecoder().decode(WeatherForecast.self, from: data)
                 if let data = self.results{
                     print(data.dataseries)
+                }
+                
+                DispatchQueue.main.async {
+                    self.tableView.reloadData()
                 }
                
             }
